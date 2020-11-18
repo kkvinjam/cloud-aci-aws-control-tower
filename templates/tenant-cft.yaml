@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template for creating trusted tenant role
+Resources:
+  AccessPolicyForApicTenant:
+    Properties:
+      Description: Access policy for APIC Tenant
+      ManagedPolicyName: ApicTenantPolicy
+      Path: /
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 'ec2:*'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Action:
+              - 's3:*'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Action: 'elasticloadbalancing:*'
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - 'config:*'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Action:
+              - 'sqs:*'
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - 'cloudtrail:*'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Action:
+              - 'cloudwatch:*'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Action:
+              - 'events:*'
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - 'logs:*'
+            Effect: Allow
+            Resource: '*'
+          - Action: 'acm:*'
+            Effect: Allow
+            Resource: '*'
+          - Action: 'resource-groups:*'
+            Effect: Allow
+            Resource: '*'
+          - Action: 'ram:*'
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - 'iam:List*'
+              - 'iam:Get*'
+              - 'iam:CreateServiceLinkedRole'
+              - 'iam:DeleteServiceLinkedRole'
+              - 'iam:GetServiceLinkedRoleDeletionStatus'
+              - 'iam:AttachRolePolicy'
+              - 'iam:PutRolePolicy'
+              - 'iam:UpdateRoleDescription'
+              - 'iam:UploadServerCertificate'
+              - 'iam:DeleteServerCertificate'
+              - 'iam:UpdateRoleDescription'
+              - 'iam:PassRole'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Action: 'iam:PassRole'
+            Effect: Allow
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:iam::'
+                - !Ref 'AWS::AccountId'
+                - ':role/ApicTenantRole'
+        Version: 2012-10-17
+    Type: 'AWS::IAM::ManagedPolicy'
+  TrustedRoleForTenant:
+    Description: Tenant role for C-Apic
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              AWS:
+                - 'arn:aws:iam::160322070568:root'
+                - 'arn:aws:iam::160322070568:role/ApicAdmin'
+              Service: vpc-flow-logs.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - !Ref AccessPolicyForApicTenant
+      Path: /
+      RoleName: ApicTenantRole
+    Type: 'AWS::IAM::Role'
